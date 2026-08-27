@@ -1,0 +1,38 @@
+{
+  "name": "motivase-site-blocker",
+  "description": "モチベーション管理×サイトブロッカー Chrome拡張",
+  "private": true,
+  "license": "MIT",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wxt",
+    "build": "wxt build",
+    "zip": "wxt zip",
+    "compile": "tsc --noEmit",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "icons": "node scripts/gen-icons.mjs",
+    "postinstall": "wxt prepare"
+  },
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.3",
+    "@tailwindcss/vite": "^4.1.0",
+    "@types/chrome": "^0.0.280",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@wxt-dev/module-react": "^1.1.0",
+    "puppeteer-core": "^25.3.0",
+    "tailwindcss": "^4.1.0",
+    "typescript": "~5.9.0",
+    "vitest": "^3.2.0",
+    "wxt": "^0.20.0"
+  }
+}

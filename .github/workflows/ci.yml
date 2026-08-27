@@ -1,0 +1,98 @@
+# PR / push ごとに lint・型チェック・ユニットテスト・ビルドを検証し、
+# main への push では実機 Chrome での E2E も回す。
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint (Biome)
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run compile
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Upload built extension
+        uses: actions/upload-artifact@v4
+        with:
+          name: chrome-mv3
+          path: .output/chrome-mv3
+          retention-days: 14
+
+  e2e:
+    # E2E は時間がかかるため PR では手動 re-run、main への push では常に実行
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    needs: check
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chrome for Testing
+        id: chrome
+        run: |
+          OUT=$(npx @puppeteer/browsers install chrome@stable --path "$RUNNER_TEMP/chrome")
+          BIN=$(echo "$OUT" | tail -1 | cut -d' ' -f2)
+          echo "bin=$BIN" >> "$GITHUB_OUTPUT"
+          "$BIN" --version
+
+      - name: Build
+        run: npm run build
+
+      - name: E2E smoke（ブロック→摩擦ゲート→一時許可→再ブロック）
+        run: node scripts/e2e-smoke.mjs
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.bin }}
+
+      - name: E2E extra（やること / ポモドーロ / バックアップ / popup）
+        run: node scripts/e2e-extra.mjs
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.bin }}
+
+      - name: E2E v2（予算 / フォーカスロック / スケジュール / プリセット / 厳格モード）
+        run: node scripts/e2e-v2.mjs
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.bin }}
+
+      - name: E2E UI（テーマ / 一括解除 / 削除の取り消し / ポモドーロ時間）
+        run: node scripts/e2e-ui.mjs
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.bin }}
+
+      - name: E2E expiry（長めの一時許可が alarm で失効するか）
+        run: node scripts/e2e-expiry.mjs
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.bin }}
+
+      - name: E2E restart（ブラウザ再起動を跨いだ永続性）
+        run: node scripts/e2e-restart.mjs
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.bin }}
