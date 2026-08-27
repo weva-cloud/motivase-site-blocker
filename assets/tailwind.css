@@ -1,0 +1,132 @@
+@import "tailwindcss";
+
+/*
+ * テーマは <html data-theme="light|dark"> で切り替える。
+ * OS 追従（auto）は起動時に lib/theme-dom.ts が解決して属性に落とすので、
+ * dark: バリアントはそのまま「手動切替つきダークモード」として機能する。
+ */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+@theme {
+  /* 日本語システムフォントスタック（Web フォントは同梱しない） */
+  --font-sans: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP",
+    "Yu Gothic UI", Meiryo, system-ui, sans-serif;
+
+  /* ダークの基調（彩度を落とした中間色。旧・濃紺よりも文字が締まる） */
+  --color-night-950: #0a0d12;
+  --color-night-900: #0e1116;
+  --color-night-800: #151a21;
+  --color-night-700: #1d232c;
+
+  /* アクセント（活力の暖色。叱責の赤ではなくアンバー）
+     引き算ミニマルの原則: 1 画面につき主要アクション 1 箇所にだけ使う */
+  --color-accent-400: #fbbf24;
+  --color-accent-500: #f59e0b;
+  --color-accent-600: #b45309;
+}
+
+@layer base {
+  /*
+   * 面（surface）・罫線・文字色はここの変数だけを情報源にする。
+   * 階調を増やさない（背景は page と surface の 2 段階まで）のが
+   * このデザインの肝。
+   */
+  :root {
+    color-scheme: light;
+    --ui-page: #ffffff;
+    --ui-surface: #ffffff;
+    --ui-sunken: #f6f7f9;
+    --ui-line: rgb(2 6 23 / 0.11);
+    --ui-text: #10151d;
+    --ui-muted: #5f6b7a;
+  }
+
+  /* data-theme が付く前（初回ペイント）だけ OS 設定で下地を合わせ、白い閃きを防ぐ */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) {
+      color-scheme: dark;
+      --ui-page: #0e1116;
+      --ui-surface: #151a21;
+      --ui-sunken: #10141a;
+      --ui-line: rgb(255 255 255 / 0.09);
+      --ui-text: #e7eaee;
+      --ui-muted: #98a2b0;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --ui-page: #0e1116;
+    --ui-surface: #151a21;
+    --ui-sunken: #10141a;
+    --ui-line: rgb(255 255 255 / 0.09);
+    --ui-text: #e7eaee;
+    --ui-muted: #98a2b0;
+  }
+
+  body {
+    background-color: var(--ui-page);
+    color: var(--ui-text);
+    @apply font-sans antialiased;
+  }
+
+  /* ネイティブ UI（チェックボックス・time 入力など）も配色に追従させる */
+  input,
+  select,
+  button {
+    font-family: inherit;
+  }
+}
+
+/* 面。影は使わず 1px の罫線だけで区切る（カードの入れ子を作らない） */
+@utility card {
+  border-radius: 0.75rem;
+  border: 1px solid var(--ui-line);
+  background-color: var(--ui-surface);
+}
+
+@utility hairline {
+  border-color: var(--ui-line);
+}
+
+@utility text-muted {
+  color: var(--ui-muted);
+}
+
+/* 一段沈んだ面（プレビュー・入力欄の背景） */
+@utility sunken {
+  background-color: var(--ui-sunken);
+}
+
+/* ポモドーロ完了時の紙吹雪 */
+@utility animate-confetti {
+  animation: confetti-fall 2.8s ease-in forwards;
+}
+
+@keyframes confetti-fall {
+  0% {
+    top: -10%;
+    opacity: 1;
+    transform: rotate(0deg);
+  }
+  100% {
+    top: 105%;
+    opacity: 0.3;
+    transform: rotate(300deg);
+  }
+}
+
+@utility animate-toast-in {
+  animation: toast-in 0.18s ease-out;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

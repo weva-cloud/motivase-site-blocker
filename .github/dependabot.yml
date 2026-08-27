@@ -1,0 +1,28 @@
+# 依存更新の運用:
+# - minor / patch は毎週まとめて 1 PR（CI が通れば低リスク）
+# - major は個別 PR にし、changelog を確認してから意図的に取り込む
+#   （特に wxt は 0.x のため minor でも破壊的変更があり得る → 個別 PR に分離）
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: Asia/Tokyo
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        applies-to: version-updates
+        update-types:
+          - minor
+          - patch
+        exclude-patterns:
+          - wxt
+          - "@wxt-dev/*"
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
