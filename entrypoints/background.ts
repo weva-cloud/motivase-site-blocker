@@ -34,10 +34,16 @@ export default defineBackground(() => {
   chrome.runtime.onInstalled.addListener(() => {
     void syncDynamicRules();
     armReviewAlarms();
-    chrome.contextMenus.create({
-      id: CONTEXT_MENU_ID,
-      title: "このサイトをブロック",
-      contexts: ["page"],
+    // onInstalled は初回インストールだけでなく、拡張機能の更新時と Chrome 自体の
+    // 更新時にも発火する。コンテキストメニューはプロファイルに永続化されるため、
+    // そのまま create すると 2 回目以降は duplicate id エラーになる。
+    // removeAll のコールバックで順序を保証してから作り直す。
+    chrome.contextMenus.removeAll(() => {
+      chrome.contextMenus.create({
+        id: CONTEXT_MENU_ID,
+        title: "このサイトをブロック",
+        contexts: ["page"],
+      });
     });
   });
   chrome.runtime.onStartup.addListener(() => {
